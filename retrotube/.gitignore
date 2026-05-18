@@ -10,5 +10,6 @@ venv/
 build/
 dist/
 *.spec
+*.exe
 .idea/
 .vscode/

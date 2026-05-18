@@ -13,6 +13,7 @@ import os
 import re
 import subprocess
 import sys
+from pathlib import Path
 from typing import Optional
 
 from PyQt6.QtCore import QObject, QRunnable, QThreadPool, pyqtSignal
@@ -42,12 +43,27 @@ QUALITY_CHOICES = (
 )
 
 
+def ytdlp_program() -> list[str]:
+    """Devuelve el ejecutable de yt-dlp adecuado al contexto.
+
+    - En modo empaquetado (.exe) ``sys.executable`` ya no es un intérprete
+      de Python, así que se usa el ``yt-dlp.exe`` incluido en el paquete.
+    - En modo normal se invoca el módulo ``yt_dlp`` del entorno de Python.
+    """
+    if getattr(sys, "frozen", False):
+        base = Path(getattr(sys, "_MEIPASS", Path(sys.executable).parent))
+        bundled = base / "yt-dlp.exe"
+        if bundled.is_file():
+            return [str(bundled)]
+    return [sys.executable, "-m", "yt_dlp"]
+
+
 def ytdlp_base_command(
     browser: Optional[str] = None,
     proxy: Optional[str] = None,
 ) -> list[str]:
     """Construye el prefijo común de todo comando ``yt-dlp``."""
-    cmd = [sys.executable, "-m", "yt_dlp", "--ignore-config", "--no-warnings"]
+    cmd = ytdlp_program() + ["--ignore-config", "--no-warnings"]
     if browser:
         # Las cookies se leen del navegador en memoria, nunca se almacenan.
         cmd += ["--cookies-from-browser", browser]

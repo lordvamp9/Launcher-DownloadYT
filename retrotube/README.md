@@ -59,6 +59,26 @@ python -m app.core.validators
 python -m app.ui.splash
 ```
 
+## Compilar a .exe
+
+El ejecutable de Windows se genera con PyInstaller. El icono es `konata.ico`
+y se incluye una copia de `yt-dlp.exe` para que las descargas funcionen sin
+un intérprete de Python.
+
+```
+pip install pyinstaller
+curl -L -o yt-dlp.exe https://github.com/yt-dlp/yt-dlp/releases/download/2024.12.13/yt-dlp.exe
+python -m PyInstaller --noconfirm --onefile --windowed --name RetroTube ^
+  --icon konata.ico ^
+  --add-data "app/ui/style.qss;app/ui" ^
+  --add-data "konata.ico;." ^
+  --add-binary "yt-dlp.exe;." main.py
+```
+
+El resultado queda en `dist/RetroTube.exe`. Para procesar formatos que
+requieren remux o extraer audio (MP3/OPUS) hace falta `ffmpeg` instalado o
+accesible en el PATH.
+
 ## Seguridad
 
 - No se almacenan credenciales, tokens ni sesiones.
