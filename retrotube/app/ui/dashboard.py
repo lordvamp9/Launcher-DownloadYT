@@ -73,13 +73,18 @@ class DashboardScreen(QWidget):
 
     def refresh(self) -> None:
         """Recarga el feed según el estado de sesión actual."""
-        authenticated = self._auth.authenticated
-        mode = "recommended" if authenticated else "trending"
-        origin = "tu feed personal" if authenticated else "tendencias públicas"
+        mode = "recommended" if self._auth.authenticated else "trending"
+        self._load(mode)
+
+    def _load(self, mode: str) -> None:
+        """Lanza la carga del feed en el modo indicado."""
+        authenticated = mode == "recommended"
+        origin = "tu feed personal" if authenticated else "el descubrimiento"
         self._info.setText(f"Cargando {origin}…")
         task = SearchTask(
             mode,
             limit=21,
+            # El feed personalizado usa cookies; el descubrimiento no.
             browser=self._settings.get("browser") if authenticated else None,
             proxy=self._settings.get("proxy") or None,
         )
@@ -112,8 +117,15 @@ class DashboardScreen(QWidget):
             self._thumbnails.request(video["id"], video["thumbnail"])
         fade_in(self._grid_host, 450)
 
-    def _show_error(self, _mode: str, message: str) -> None:
-        """Muestra un error de carga del feed."""
+    def _show_error(self, mode: str, message: str) -> None:
+        """Muestra un error de carga del feed, con reintento de respaldo."""
+        if mode == "recommended":
+            # Si el feed personalizado falla, se recurre al descubrimiento.
+            self._info.setText(
+                "Feed personal no disponible; mostrando descubrimiento…"
+            )
+            self._load("trending")
+            return
         self._info.setText(f"Error al cargar el feed: {message}")
         self.status_message.emit(f"Feed no disponible: {message}")
 

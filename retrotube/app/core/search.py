@@ -2,7 +2,7 @@
 
 Modos soportados:
 - ``query``        : búsqueda con ``ytsearch20:"..."``.
-- ``trending``     : tendencias públicas de YouTube.
+- ``trending``     : descubrimiento público mediante búsqueda (sin cookies).
 - ``recommended``  : feed personalizado (requiere cookies del navegador).
 - ``playlist``     : extracción de los vídeos de una lista por URL.
 """
@@ -14,10 +14,12 @@ from typing import Optional
 
 from PyQt6.QtCore import QObject, QRunnable, pyqtSignal
 
-from app.core.downloader import ytdlp_base_command
+from app.core.downloader import NO_WINDOW, ytdlp_base_command
 from app.core.validators import InvalidYouTubeURL, validate_playlist_url
 
-_TRENDING_URL = "https://www.youtube.com/feed/trending"
+# Consulta de descubrimiento usada cuando no hay sesión iniciada. El antiguo
+# feed /feed/trending de YouTube dejó de ser extraíble por yt-dlp.
+_DISCOVER_QUERY = "música 2026"
 _RECOMMENDED_URL = "https://www.youtube.com/feed/recommended"
 
 
@@ -90,7 +92,8 @@ class SearchTask(QRunnable):
             # ytsearch evita por completo la necesidad de una API key.
             return f"ytsearch{self.limit}:{self.query}"
         if self.mode == "trending":
-            return _TRENDING_URL
+            # Descubrimiento vía búsqueda: siempre funciona y no usa cookies.
+            return f"ytsearch{self.limit}:{self.query or _DISCOVER_QUERY}"
         if self.mode == "recommended":
             return _RECOMMENDED_URL
         if self.mode == "playlist":
@@ -125,6 +128,7 @@ class SearchTask(QRunnable):
                 encoding="utf-8",
                 errors="replace",
                 timeout=60,
+                creationflags=NO_WINDOW,
             )
         except FileNotFoundError:
             self.signals.error.emit(

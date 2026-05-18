@@ -20,6 +20,10 @@ from PyQt6.QtCore import QObject, QRunnable, QThreadPool, pyqtSignal
 
 from app.core.validators import validate_youtube_url
 
+# Flag de Windows para que los subprocesos NO abran una ventana de consola.
+# Es imprescindible al ejecutar la app empaquetada en modo "windowed".
+NO_WINDOW = getattr(subprocess, "CREATE_NO_WINDOW", 0)
+
 # Delimitador interno usado en las plantillas de salida de yt-dlp.
 _SEP = "¦"  # Carácter raro, improbable en títulos o rutas.
 _PROG_TAG = "RETRO_PROG"
@@ -198,6 +202,7 @@ class DownloadTask(QRunnable):
                 encoding="utf-8",
                 errors="replace",
                 bufsize=1,
+                creationflags=NO_WINDOW,
             )
             assert self._process.stdout is not None
             for raw in self._process.stdout:

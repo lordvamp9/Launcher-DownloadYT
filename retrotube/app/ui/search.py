@@ -248,11 +248,12 @@ class SearchScreen(QWidget):
         if not query:
             return
         self._info.setText(f"Buscando «{query}»…")
+        # La búsqueda es pública: nunca usa cookies del navegador.
         task = SearchTask(
             "query",
             query=query,
             limit=20,
-            browser=self._settings.get("browser"),
+            browser=None,
             proxy=self._settings.get("proxy") or None,
         )
         task.signals.results.connect(self._show_results)

@@ -228,11 +228,12 @@ class PlaylistsScreen(QWidget):
             self.status_message.emit(f"URL de lista inválida: {exc}")
             return
         self.status_message.emit("Obteniendo vídeos de la lista…")
+        # Las listas públicas se extraen sin cookies del navegador.
         task = SearchTask(
             "playlist",
             query=url,
             limit=40,
-            browser=self._settings.get("browser"),
+            browser=None,
             proxy=self._settings.get("proxy") or None,
         )
         task.signals.results.connect(self._enqueue_playlist)

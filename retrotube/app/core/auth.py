@@ -15,7 +15,7 @@ from typing import Optional
 
 from PyQt6.QtCore import QObject, QRunnable, QThreadPool, pyqtSignal
 
-from app.core.downloader import ytdlp_base_command
+from app.core.downloader import NO_WINDOW, ytdlp_base_command
 
 SUPPORTED_BROWSERS = ("chrome", "firefox", "edge", "brave", "opera", "vivaldi")
 
@@ -61,6 +61,7 @@ class AuthTask(QRunnable):
                 encoding="utf-8",
                 errors="replace",
                 timeout=45,
+                creationflags=NO_WINDOW,
             )
         except FileNotFoundError:
             self.signals.error.emit("No se encontró yt-dlp.")
@@ -88,7 +89,16 @@ class AuthTask(QRunnable):
 
         # Sin elementos => sin sesión (o cookies no extraíbles del navegador).
         stderr = (completed.stderr or "").lower()
-        if "could not find" in stderr or "unable to find" in stderr:
+        if "dpapi" in stderr or "failed to decrypt" in stderr:
+            # Chrome/Edge recientes cifran las cookies y bloquean su lectura
+            # mientras el navegador está abierto.
+            self.signals.error.emit(
+                f"No se pudieron descifrar las cookies de {self.browser}. "
+                "Cierra completamente el navegador e inténtalo de nuevo, "
+                "o usa Firefox en Configuración."
+            )
+            return
+        elif "could not find" in stderr or "unable to find" in stderr:
             self.signals.error.emit(
                 f"No se pudieron leer las cookies de {self.browser}."
             )
@@ -149,6 +159,7 @@ class AuthManager(QObject):
                 capture_output=True,
                 text=True,
                 timeout=20,
+                creationflags=NO_WINDOW,
             )
         except (OSError, subprocess.TimeoutExpired):
             # El fallo al limpiar la caché no debe impedir el cierre de sesión.
