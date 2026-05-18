@@ -59,25 +59,35 @@ python -m app.core.validators
 python -m app.ui.splash
 ```
 
+## Descarga del ejecutable
+
+En la pestana Releases del repositorio hay un `RetroTube.exe` listo para usar
+en Windows de 64 bits. Es autonomo: incluye `yt-dlp` y `ffmpeg`, asi que no
+necesita instalar Python ni dependencias.
+
 ## Compilar a .exe
 
-El ejecutable de Windows se genera con PyInstaller. El icono es `konata.ico`
-y se incluye una copia de `yt-dlp.exe` para que las descargas funcionen sin
-un intérprete de Python.
+El ejecutable se genera con PyInstaller en modo onefile. El icono es
+`konata.ico` y se incluyen `yt-dlp.exe`, `ffmpeg.exe` y `ffprobe.exe` para
+que las descargas, el remux y la extraccion de audio funcionen sin requisitos
+externos.
 
 ```
 pip install pyinstaller
 curl -L -o yt-dlp.exe https://github.com/yt-dlp/yt-dlp/releases/download/2024.12.13/yt-dlp.exe
+:: Descarga ffmpeg.exe y ffprobe.exe (build estatico de Windows) en esta carpeta
 python -m PyInstaller --noconfirm --onefile --windowed --name RetroTube ^
   --icon konata.ico ^
   --add-data "app/ui/style.qss;app/ui" ^
   --add-data "konata.ico;." ^
-  --add-binary "yt-dlp.exe;." main.py
+  --add-binary "yt-dlp.exe;." ^
+  --add-binary "ffmpeg.exe;." ^
+  --add-binary "ffprobe.exe;." main.py
 ```
 
-El resultado queda en `dist/RetroTube.exe`. Para procesar formatos que
-requieren remux o extraer audio (MP3/OPUS) hace falta `ffmpeg` instalado o
-accesible en el PATH.
+El resultado queda en `dist/RetroTube.exe`. Al ejecutar desde el codigo
+fuente, si colocas `ffmpeg.exe` en la raiz del proyecto la app lo detecta
+automaticamente; si no, usa el `ffmpeg` del PATH del sistema.
 
 ## Seguridad
 

@@ -72,6 +72,26 @@ def ytdlp_base_command(
     return cmd
 
 
+def ffmpeg_location() -> Optional[str]:
+    """Devuelve la carpeta de ffmpeg incluida con la app, si existe.
+
+    yt-dlp necesita ffmpeg para fusionar vídeo + audio y para extraer audio
+    (MP3/OPUS). Si no se encuentra una copia incluida, se devuelve ``None`` y
+    yt-dlp recurrirá al ffmpeg disponible en el PATH del sistema.
+    """
+    folders: list[Path] = []
+    if getattr(sys, "frozen", False):
+        folders.append(Path(getattr(sys, "_MEIPASS", ".")))
+        folders.append(Path(sys.executable).parent)
+    else:
+        # En modo script: raíz del proyecto (dos niveles por encima).
+        folders.append(Path(__file__).resolve().parents[2])
+    for folder in folders:
+        if (folder / "ffmpeg.exe").is_file() or (folder / "ffmpeg").is_file():
+            return str(folder)
+    return None
+
+
 def build_format_args(quality: str, container: str) -> list[str]:
     """Traduce una calidad lógica a los argumentos de formato de yt-dlp."""
     if quality == "audio_mp3":
@@ -145,6 +165,10 @@ class DownloadTask(QRunnable):
         ]
         if self.rate_limit:
             cmd += ["--limit-rate", self.rate_limit]
+        ffmpeg = ffmpeg_location()
+        if ffmpeg:
+            # Permite remux y extracción de audio sin depender del PATH.
+            cmd += ["--ffmpeg-location", ffmpeg]
         cmd.append(self.url)
         return cmd
 
