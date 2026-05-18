@@ -1,0 +1,14 @@
+*.db
+settings.json
+cookies*.txt
+*.log
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+build/
+dist/
+*.spec
+.idea/
+.vscode/

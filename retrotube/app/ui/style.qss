@@ -1,0 +1,328 @@
+/* ============================================================
+   RetroTube Downloader - hoja de estilos global (QSS)
+   Estética Windows Media Player, era 2000s.
+   ============================================================ */
+
+QWidget {
+    background-color: #080C14;
+    color: #C8E8FF;
+    font-family: "Segoe UI", "Arial";
+    font-size: 13px;
+}
+
+QMainWindow, QDialog {
+    background-color: #080C14;
+}
+
+/* ----- Tipografía LCD para datos y números ----- */
+.lcd {
+    font-family: "Courier New";
+    color: #33CCFF;
+    letter-spacing: 1px;
+}
+
+/* ----- Tarjetas / superficies ----- */
+QFrame#Card, QFrame#Panel {
+    background-color: #0D1526;
+    border: 1px solid #1A3A5C;
+    border-radius: 6px;
+}
+
+QFrame#Card:hover {
+    border: 1px solid #00AAFF;
+}
+
+QFrame#BevelTop {
+    background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+        stop:0 #14233D, stop:1 #0A1322);
+    border: 1px solid #1A3A5C;
+    border-bottom: 2px solid #00AAFF;
+}
+
+/* ----- Títulos ----- */
+QLabel#ScreenTitle {
+    font-size: 22px;
+    font-weight: bold;
+    color: #33CCFF;
+    padding: 4px 2px;
+}
+
+QLabel#SectionTitle {
+    font-size: 15px;
+    font-weight: bold;
+    color: #00AAFF;
+}
+
+QLabel#Muted {
+    color: #6A9EC0;
+}
+
+/* ----- Botones biselados con efecto gloss ----- */
+QPushButton {
+    background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+        stop:0 #102A4C, stop:0.5 #0D1F3C, stop:0.51 #0A1A33,
+        stop:1 #0D1F3C);
+    color: #C8E8FF;
+    border: 1px solid #00AAFF;
+    border-radius: 4px;
+    padding: 7px 16px;
+    font-weight: bold;
+}
+
+QPushButton:hover {
+    background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+        stop:0 #33CCFF, stop:0.5 #00AAFF, stop:0.51 #0095DD,
+        stop:1 #00AAFF);
+    color: #04101E;
+    border: 1px solid #33CCFF;
+}
+
+QPushButton:pressed {
+    background-color: #0095DD;
+    color: #04101E;
+}
+
+QPushButton:disabled {
+    background-color: #0A1322;
+    color: #3C5A74;
+    border: 1px solid #1A3A5C;
+}
+
+QPushButton#NavButton {
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: 4px;
+    text-align: left;
+    padding: 10px 14px;
+    font-weight: bold;
+    color: #6A9EC0;
+}
+
+QPushButton#NavButton:hover {
+    background-color: #0D1F3C;
+    border: 1px solid #00AAFF;
+    color: #33CCFF;
+}
+
+QPushButton#NavButton:checked {
+    background-color: qlineargradient(x1:0, y1:0, x2:1, y2:0,
+        stop:0 #00AAFF, stop:1 #0D1F3C);
+    color: #04101E;
+    border: 1px solid #33CCFF;
+}
+
+QPushButton#GhostButton {
+    background: transparent;
+    border: 1px solid #1A3A5C;
+    color: #6A9EC0;
+}
+
+QPushButton#GhostButton:hover {
+    border: 1px solid #00AAFF;
+    color: #33CCFF;
+    background: #0D1F3C;
+}
+
+QPushButton#DangerButton {
+    border: 1px solid #FF5577;
+    color: #FF99AA;
+}
+
+QPushButton#DangerButton:hover {
+    background-color: #FF5577;
+    color: #04101E;
+    border: 1px solid #FF99AA;
+}
+
+/* ----- Campos de texto ----- */
+QLineEdit, QComboBox, QSpinBox {
+    background-color: #04101E;
+    border: 1px solid #1A3A5C;
+    border-radius: 4px;
+    padding: 7px 10px;
+    color: #C8E8FF;
+    selection-background-color: #00AAFF;
+    selection-color: #04101E;
+}
+
+QLineEdit:focus, QComboBox:focus, QSpinBox:focus {
+    border: 1px solid #00AAFF;
+    background-color: #061726;
+}
+
+QLineEdit#SearchBar {
+    font-size: 15px;
+    padding: 11px 16px;
+    border: 2px solid #1A3A5C;
+}
+
+QLineEdit#SearchBar:focus {
+    border: 2px solid #33CCFF;
+    background-color: #08203A;
+}
+
+QComboBox::drop-down {
+    border: none;
+    width: 22px;
+}
+
+QComboBox QAbstractItemView {
+    background-color: #0D1526;
+    border: 1px solid #00AAFF;
+    selection-background-color: #00AAFF;
+    selection-color: #04101E;
+}
+
+/* ----- Barras de progreso estilo LED segmentado ----- */
+QProgressBar {
+    background-color: #04101E;
+    border: 1px solid #1A3A5C;
+    border-radius: 4px;
+    height: 8px;
+    text-align: center;
+    color: transparent;
+}
+
+QProgressBar::chunk {
+    background-color: qlineargradient(x1:0, y1:0, x2:1, y2:0,
+        stop:0 #003366, stop:1 #00AAFF);
+    border-radius: 3px;
+    margin: 0px;
+}
+
+QProgressBar#LedBar::chunk {
+    background-color: qlineargradient(x1:0, y1:0, x2:1, y2:0,
+        stop:0 #003366, stop:0.5 #0077BB, stop:1 #33CCFF);
+}
+
+/* ----- Listas y tablas ----- */
+QListWidget, QTreeWidget, QTableWidget {
+    background-color: #0D1526;
+    border: 1px solid #1A3A5C;
+    border-radius: 6px;
+    outline: 0;
+}
+
+QListWidget::item {
+    padding: 6px;
+    border-radius: 4px;
+}
+
+QListWidget::item:selected {
+    background-color: #0D1F3C;
+    color: #33CCFF;
+}
+
+QListWidget::item:hover {
+    background-color: #102A4C;
+}
+
+/* ----- Pestañas ----- */
+QTabWidget::pane {
+    border: 1px solid #1A3A5C;
+    border-radius: 6px;
+    top: -1px;
+}
+
+QTabBar::tab {
+    background-color: #0A1322;
+    color: #6A9EC0;
+    border: 1px solid #1A3A5C;
+    padding: 8px 18px;
+    font-weight: bold;
+}
+
+QTabBar::tab:selected {
+    background-color: #0D1F3C;
+    color: #33CCFF;
+    border-bottom: 2px solid #00AAFF;
+}
+
+/* ----- Scrollbars delgadas ----- */
+QScrollBar:vertical {
+    background: #04101E;
+    width: 10px;
+    margin: 0px;
+}
+
+QScrollBar::handle:vertical {
+    background: #1A3A5C;
+    border-radius: 5px;
+    min-height: 28px;
+}
+
+QScrollBar::handle:vertical:hover {
+    background: #00AAFF;
+}
+
+QScrollBar:horizontal {
+    background: #04101E;
+    height: 10px;
+    margin: 0px;
+}
+
+QScrollBar::handle:horizontal {
+    background: #1A3A5C;
+    border-radius: 5px;
+    min-width: 28px;
+}
+
+QScrollBar::handle:horizontal:hover {
+    background: #00AAFF;
+}
+
+QScrollBar::add-line, QScrollBar::sub-line {
+    width: 0px;
+    height: 0px;
+}
+
+QScrollBar::add-page, QScrollBar::sub-page {
+    background: transparent;
+}
+
+/* ----- Barra de estado ----- */
+QStatusBar {
+    background-color: #0A1322;
+    color: #6A9EC0;
+    border-top: 1px solid #1A3A5C;
+}
+
+QStatusBar QLabel {
+    padding: 2px 8px;
+}
+
+/* ----- Badges de resolución ----- */
+QLabel#Badge {
+    background-color: #0D1F3C;
+    border: 1px solid #00AAFF;
+    border-radius: 3px;
+    color: #33CCFF;
+    padding: 1px 6px;
+    font-family: "Courier New";
+    font-size: 11px;
+}
+
+QLabel#BadgeHD {
+    border: 1px solid #33CCFF;
+    color: #04101E;
+    background-color: #33CCFF;
+}
+
+/* ----- Tooltips ----- */
+QToolTip {
+    background-color: #0D1F3C;
+    color: #33CCFF;
+    border: 1px solid #00AAFF;
+    padding: 4px;
+}
+
+/* ----- Menús ----- */
+QMenu {
+    background-color: #0D1526;
+    border: 1px solid #00AAFF;
+}
+
+QMenu::item:selected {
+    background-color: #00AAFF;
+    color: #04101E;
+}
