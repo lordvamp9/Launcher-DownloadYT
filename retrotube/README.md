@@ -1,104 +1,89 @@
 # RetroTube Downloader
 
-Descargador profesional de YouTube para escritorio con estética inspirada en
-**Windows Media Player** (era 2000s): fondos azul-negro profundo, acentos en
-azul cian brillante, bordes biselados tipo *gloss*, tipografía LCD y
-animaciones de transición exageradas.
+Descargador de YouTube para escritorio, en Python, con estetica inspirada en
+Windows Media Player de los anos 2000.
 
----
+## Advertencia de privacidad
 
-## ⚠️ Advertencia de privacidad
+Esta app usa tus cookies de navegador localmente. Nunca las transmite a
+servidores externos.
 
-> **Esta app usa tus cookies de navegador localmente. Nunca las transmite a
-> servidores externos.**
+La autenticacion se hace leyendo las cookies del navegador en memoria
+(`yt-dlp --cookies-from-browser`). No se piden usuario ni contrasena, no se
+guardan credenciales, tokens ni sesiones en disco, y no hay sockets ni
+telemetria.
 
-RetroTube se autentica leyendo las cookies de tu navegador en memoria
-(`yt-dlp --cookies-from-browser`). **Nunca** solicita usuario ni contraseña,
-**nunca** guarda credenciales, tokens ni sesiones en disco, y **no** abre
-sockets ni envía telemetría.
+## Funciones
 
----
+- Splash de arranque animado.
+- Dashboard con feed de recomendaciones (personalizado con sesion, o
+  tendencias publicas sin ella) y cola de descargas en tiempo real.
+- Buscador sin API key mediante `ytsearch20`.
+- Mis descargas: biblioteca local con filtros y estadisticas.
+- Mis listas: listas locales con color, drag and drop, descarga de listas de
+  YouTube por URL y exportacion a M3U.
+- Sesion mediante cookies del navegador (Chrome, Firefox, Edge y otros).
+- Configuracion de carpeta, calidad, formato, limite de velocidad, descargas
+  simultaneas, navegador y proxy.
 
-## Características
+## Stack tecnico
 
-- **Splash animado** con efecto *scan line* y barra de progreso LED.
-- **Dashboard** con feed de recomendaciones (personalizado si hay sesión, o
-  tendencias públicas si no) y cola de descargas en tiempo real.
-- **Buscador** sin API key mediante `ytsearch20`, con rejilla de tarjetas y
-  selector de calidad (144p → 4K, además de audio MP3/OPUS).
-- **Mis descargas**: biblioteca local con filtros, estadísticas y gestión de
-  archivos.
-- **Mis listas**: listas locales con color, *drag & drop*, descarga de listas
-  de YouTube por URL y exportación a M3U.
-- **Sesión** mediante cookies del navegador (Chrome / Firefox / Edge…).
-- **Configuración** de carpeta, calidad, formato, límite de velocidad,
-  descargas simultáneas, navegador y proxy.
-
-## Stack técnico
-
-| Componente        | Tecnología                          |
-|-------------------|-------------------------------------|
-| Interfaz gráfica  | PyQt6                               |
-| Descargas         | yt-dlp (vía `subprocess`, sin shell)|
-| Base de datos     | SQLite + SQLAlchemy (solo metadatos)|
-| Peticiones HTTP   | httpx (con *timeouts* estrictos)    |
-| Concurrencia      | QThreadPool + QRunnable             |
+- Interfaz: PyQt6
+- Descargas: yt-dlp (via subprocess, sin shell)
+- Base de datos: SQLite con SQLAlchemy (solo metadatos)
+- HTTP: httpx con timeouts estrictos
+- Concurrencia: QThreadPool y QRunnable
 
 ## Requisitos
 
 - Python 3.10 o superior.
-- Un navegador compatible con sesión de YouTube iniciada (opcional, solo si
-  quieres feed personalizado o vídeos con restricción de edad).
+- Un navegador con sesion de YouTube iniciada (opcional; solo para el feed
+  personalizado o vistas con restriccion de edad).
 
-## Instalación
+## Instalacion
 
-```bash
+```
 pip install -r requirements.txt
 ```
 
-## Ejecución
+## Ejecucion
 
-```bash
+```
 python main.py
 ```
 
-Cada módulo es además ejecutable de forma independiente para pruebas, por
-ejemplo:
+Cada modulo tambien se puede ejecutar de forma independiente, por ejemplo:
 
-```bash
+```
 python -m app.core.validators
 python -m app.ui.splash
 ```
 
 ## Seguridad
 
-- Cero almacenamiento de credenciales, tokens o sesiones.
-- Toda URL pasa por `validate_youtube_url()` con expresiones regulares
-  estrictas antes de llegar a `yt-dlp`.
-- `yt-dlp` se invoca siempre con una lista de argumentos, nunca con
-  `shell=True`.
-- Todas las consultas SQL usan parámetros vinculados (ORM), nunca
-  interpolación de cadenas.
-- `settings.json` recibe permisos `600` cuando el sistema operativo lo
-  permite.
-- La base de datos SQLite solo guarda: id, título, URL, ruta local, ruta de
-  miniatura, fecha de descarga, canal, duración y tamaño en bytes.
+- No se almacenan credenciales, tokens ni sesiones.
+- Toda URL pasa por `validate_youtube_url()` antes de llegar a yt-dlp.
+- yt-dlp se invoca siempre con una lista de argumentos, nunca con `shell=True`.
+- Las consultas SQL usan parametros vinculados (ORM), nunca interpolacion.
+- `settings.json` recibe permisos 600 cuando el sistema lo permite.
+- La base de datos solo guarda id, titulo, URL, ruta local, ruta de miniatura,
+  fecha de descarga, canal, duracion y tamano en bytes.
 
-## Estructura del proyecto
+## Estructura
 
 ```
 retrotube/
-├── main.py
-├── app/
-│   ├── ui/        Pantallas PyQt6 + style.qss
-│   ├── core/      Descargas, búsqueda, autenticación, datos, validación
-│   └── utils/     Miniaturas, seguridad, animaciones
-├── requirements.txt
-├── .gitignore
-└── README.md
+  main.py
+  app/
+    ui/      Pantallas PyQt6 y style.qss
+    core/    Descargas, busqueda, autenticacion, datos, validacion
+    utils/   Miniaturas, seguridad, animaciones
+  requirements.txt
+  .gitignore
+  README.md
 ```
 
 ## Licencia
 
-Uso educativo. Respeta los Términos de Servicio de YouTube y la legislación
-de derechos de autor aplicable en tu país.
+Uso educativo. Respeta los Terminos de Servicio de YouTube y la legislacion de
+derechos de autor aplicable.
