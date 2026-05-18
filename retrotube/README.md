@@ -26,6 +26,21 @@ telemetria.
 - Configuracion de carpeta, calidad, formato, limite de velocidad, descargas
   simultaneas, navegador y proxy.
 
+## Inicio de sesion y descargas
+
+YouTube exige cookies de una cuenta para descargar la mayoria de los videos
+(control "Sign in to confirm you're not a bot"). Buscar y explorar funciona
+sin sesion, pero para descargar conviene iniciar sesion.
+
+En la pestana Sesion se elige el navegador y se pulsa Verificar sesion.
+Importante: Chrome y Edge bloquean su base de datos de cookies mientras estan
+abiertos, asi que hay que **cerrarlos por completo** antes de verificar.
+
+Metodo mas fiable: exportar un archivo `cookies.txt` con una extension del
+navegador (por ejemplo "Get cookies.txt LOCALLY") e indicar su ruta en la
+pestana Sesion o en Configuracion. La app solo guarda la ruta del archivo,
+nunca su contenido.
+
 ## Stack tecnico
 
 - Interfaz: PyQt6
@@ -74,7 +89,7 @@ externos.
 
 ```
 pip install pyinstaller
-curl -L -o yt-dlp.exe https://github.com/yt-dlp/yt-dlp/releases/download/2024.12.13/yt-dlp.exe
+curl -L -o yt-dlp.exe https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp.exe
 :: Descarga ffmpeg.exe y ffprobe.exe (build estatico de Windows) en esta carpeta
 python -m PyInstaller --noconfirm --onefile --windowed --name RetroTube ^
   --icon konata.ico ^

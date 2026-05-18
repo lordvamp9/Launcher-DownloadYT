@@ -77,6 +77,7 @@ class SearchTask(QRunnable):
         limit: int = 20,
         browser: Optional[str] = None,
         proxy: Optional[str] = None,
+        cookies_file: Optional[str] = None,
     ) -> None:
         super().__init__()
         self.mode = mode
@@ -84,6 +85,7 @@ class SearchTask(QRunnable):
         self.limit = max(1, min(40, limit))
         self.browser = browser
         self.proxy = proxy
+        self.cookies_file = cookies_file
         self.signals = SearchSignals()
 
     def _target(self) -> str:
@@ -103,7 +105,7 @@ class SearchTask(QRunnable):
 
     def _build_command(self, target: str) -> list[str]:
         """Compone el comando de extracción de metadatos (sin descarga)."""
-        cmd = ytdlp_base_command(self.browser, self.proxy)
+        cmd = ytdlp_base_command(self.browser, self.proxy, self.cookies_file)
         cmd += [
             "--flat-playlist",
             "--dump-json",

@@ -10,9 +10,12 @@ from PyQt6.QtCore import pyqtSignal
 from PyQt6.QtWidgets import (
     QApplication,
     QButtonGroup,
+    QComboBox,
+    QFileDialog,
     QFrame,
     QHBoxLayout,
     QLabel,
+    QLineEdit,
     QPushButton,
     QStackedWidget,
     QVBoxLayout,
@@ -70,15 +73,43 @@ class SessionScreen(QWidget):
         explain = QLabel(
             "RetroTube se autentica usando las cookies de tu navegador. "
             "Nunca se pide usuario ni contraseña, y las cookies jamás se "
-            "guardan en disco ni se envían a ningún servidor externo."
+            "guardan en disco ni se envían a ningún servidor externo.\n\n"
+            "IMPORTANTE: cierra por completo el navegador antes de verificar "
+            "(Chrome y Edge bloquean sus cookies mientras están abiertos). "
+            "Si falla, indica abajo un archivo cookies.txt exportado con una "
+            "extensión del navegador: es el método más fiable."
         )
         explain.setObjectName("Muted")
         explain.setWordWrap(True)
         card_layout.addWidget(explain)
 
+        # --- Selector de navegador para las cookies ---
+        browser_row = QHBoxLayout()
+        browser_row.addWidget(QLabel("Navegador:"))
+        self._browser = QComboBox()
+        self._browser.addItems(SUPPORTED_BROWSERS)
+        current = str(self._settings.get("browser"))
+        if current in SUPPORTED_BROWSERS:
+            self._browser.setCurrentText(current)
+        browser_row.addWidget(self._browser, 1)
+        card_layout.addLayout(browser_row)
+
+        # --- Archivo de cookies opcional ---
+        cookies_row = QHBoxLayout()
+        cookies_row.addWidget(QLabel("cookies.txt:"))
+        self._cookies = QLineEdit(str(self._settings.get("cookies_file")))
+        self._cookies.setPlaceholderText("Opcional, pero el método más fiable")
+        cookies_row.addWidget(self._cookies, 1)
+        browse = QPushButton("Examinar…")
+        browse.setObjectName("GhostButton")
+        browse.clicked.connect(self._choose_cookies)
+        cookies_row.addWidget(browse)
+        card_layout.addLayout(cookies_row)
+
         self._status = QLabel("Estado: sin sesión")
+        self._status.setWordWrap(True)
         self._status.setStyleSheet(
-            "font-family:'Courier New';color:#33CCFF;font-size:15px;"
+            "font-family:'Courier New';color:#33CCFF;font-size:14px;"
         )
         card_layout.addWidget(self._status)
 
@@ -96,14 +127,29 @@ class SessionScreen(QWidget):
         layout.addWidget(card)
         layout.addStretch(1)
 
+    def _choose_cookies(self) -> None:
+        """Permite elegir un archivo cookies.txt para la sesión."""
+        chosen, _ = QFileDialog.getOpenFileName(
+            self, "Selecciona el archivo de cookies", "",
+            "Cookies (*.txt);;Todos los archivos (*)"
+        )
+        if chosen:
+            self._cookies.setText(chosen)
+
     def _verify(self) -> None:
-        """Verifica la sesión con el navegador configurado."""
-        browser = self._settings.get("browser")
-        if browser not in SUPPORTED_BROWSERS:
-            browser = "chrome"
+        """Guarda navegador/cookies y verifica la sesión."""
+        browser = self._browser.currentText()
+        cookies_file = self._cookies.text().strip()
+        # Los ajustes se guardan para que también los usen las descargas.
+        self._settings.update({
+            "browser": browser, "cookies_file": cookies_file,
+        })
         self._auth.set_browser(browser)
-        self._status.setText(f"Verificando con {browser}…")
-        self._auth.verify(self._settings.get("proxy") or None)
+        origin = "archivo cookies.txt" if cookies_file else browser
+        self._status.setText(f"Verificando con {origin}…")
+        self._auth.verify(
+            self._settings.get("proxy") or None, cookies_file or None
+        )
 
     def _logout(self) -> None:
         """Cierra la sesión y limpia la caché temporal de yt-dlp."""
@@ -308,8 +354,10 @@ class MainWindow(QWidget):
             self._set_status("Ese vídeo ya está en la cola.")
             return
 
-        # Las cookies solo se usan si hay sesión verificada.
-        browser = self.auth.browser if self.auth.authenticated else None
+        # YouTube exige cookies para descargar: se usan siempre las del
+        # navegador configurado o el archivo cookies.txt indicado.
+        browser = self.settings.get("browser") or None
+        cookies_file = self.settings.get("cookies_file") or None
         try:
             task = DownloadTask(
                 task_id=task_id,
@@ -320,6 +368,7 @@ class MainWindow(QWidget):
                 browser=browser,
                 proxy=self.settings.get("proxy") or None,
                 rate_limit=self.settings.get("rate_limit") or None,
+                cookies_file=cookies_file,
             )
         except ValueError as exc:
             self._set_status(f"URL rechazada: {exc}")

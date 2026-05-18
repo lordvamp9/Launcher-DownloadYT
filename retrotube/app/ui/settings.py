@@ -39,6 +39,7 @@ _DEFAULTS: dict[str, Any] = {
     "max_concurrent": 3,
     "browser": "chrome",
     "proxy": "",
+    "cookies_file": "",
 }
 
 _FORMATS = ("mp4", "mkv", "webm", "mp3", "opus")
@@ -158,6 +159,21 @@ class SettingsScreen(QWidget):
         self._browser.addItems(SUPPORTED_BROWSERS)
         form.addRow("Navegador (cookies):", self._browser)
 
+        # --- Archivo de cookies opcional ---
+        self._cookies = QLineEdit()
+        self._cookies.setPlaceholderText(
+            "Ruta a un cookies.txt (más fiable que leer del navegador)"
+        )
+        cookies_browse = QPushButton("Examinar…")
+        cookies_browse.setObjectName("GhostButton")
+        cookies_browse.clicked.connect(self._choose_cookies)
+        cookies_row = QHBoxLayout()
+        cookies_row.addWidget(self._cookies, 1)
+        cookies_row.addWidget(cookies_browse)
+        cookies_wrap = QWidget()
+        cookies_wrap.setLayout(cookies_row)
+        form.addRow("Archivo de cookies:", cookies_wrap)
+
         # --- Proxy opcional ---
         self._proxy = QLineEdit()
         self._proxy.setPlaceholderText("http://host:puerto o socks5://host:puerto")
@@ -188,6 +204,15 @@ class SettingsScreen(QWidget):
         if chosen:
             self._dir_edit.setText(chosen)
 
+    def _choose_cookies(self) -> None:
+        """Abre un diálogo para elegir un archivo cookies.txt."""
+        chosen, _ = QFileDialog.getOpenFileName(
+            self, "Selecciona el archivo de cookies", str(Path.home()),
+            "Cookies (*.txt);;Todos los archivos (*)"
+        )
+        if chosen:
+            self._cookies.setText(chosen)
+
     def _load_into_form(self) -> None:
         """Vuelca los ajustes guardados en los controles del formulario."""
         self._dir_edit.setText(str(self._manager.get("download_dir")))
@@ -196,6 +221,7 @@ class SettingsScreen(QWidget):
         self._rate.setText(str(self._manager.get("rate_limit")))
         self._concurrent.setValue(int(self._manager.get("max_concurrent")))
         self._browser.setCurrentText(str(self._manager.get("browser")))
+        self._cookies.setText(str(self._manager.get("cookies_file")))
         self._proxy.setText(str(self._manager.get("proxy")))
 
     def _save(self) -> None:
@@ -207,6 +233,7 @@ class SettingsScreen(QWidget):
             "rate_limit": self._rate.text().strip(),
             "max_concurrent": self._concurrent.value(),
             "browser": self._browser.currentText(),
+            "cookies_file": self._cookies.text().strip(),
             "proxy": self._proxy.text().strip(),
         }
         self._manager.update(values)

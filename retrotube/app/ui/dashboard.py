@@ -87,6 +87,10 @@ class DashboardScreen(QWidget):
             # El feed personalizado usa cookies; el descubrimiento no.
             browser=self._settings.get("browser") if authenticated else None,
             proxy=self._settings.get("proxy") or None,
+            cookies_file=(
+                self._settings.get("cookies_file") or None
+                if authenticated else None
+            ),
         )
         task.signals.results.connect(self._show_results)
         task.signals.error.connect(self._show_error)

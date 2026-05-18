@@ -65,15 +65,46 @@ def ytdlp_program() -> list[str]:
 def ytdlp_base_command(
     browser: Optional[str] = None,
     proxy: Optional[str] = None,
+    cookies_file: Optional[str] = None,
 ) -> list[str]:
-    """Construye el prefijo común de todo comando ``yt-dlp``."""
+    """Construye el prefijo común de todo comando ``yt-dlp``.
+
+    Prioridad de cookies: un archivo ``cookies.txt`` indicado por el usuario
+    tiene preferencia sobre la lectura directa del navegador. El archivo es
+    más fiable porque no falla cuando el navegador está abierto y mantiene
+    bloqueada su base de datos de cookies.
+    """
     cmd = ytdlp_program() + ["--ignore-config", "--no-warnings"]
-    if browser:
+    if cookies_file and Path(cookies_file).is_file():
+        cmd += ["--cookies", cookies_file]
+    elif browser:
         # Las cookies se leen del navegador en memoria, nunca se almacenan.
         cmd += ["--cookies-from-browser", browser]
     if proxy:
         cmd += ["--proxy", proxy]
     return cmd
+
+
+def friendly_ytdlp_error(text: str) -> str:
+    """Traduce los errores más comunes de yt-dlp a un mensaje claro."""
+    low = text.lower()
+    if "sign in to confirm" in low or "not a bot" in low:
+        return ("YouTube exige sesión para este vídeo. Inicia sesión en la "
+                "pestaña Sesión (con el navegador cerrado).")
+    if "could not copy" in low and "cookie" in low:
+        return ("No se pudieron leer las cookies: cierra por completo el "
+                "navegador e inténtalo de nuevo.")
+    if "dpapi" in low or "failed to decrypt" in low:
+        return ("No se pudieron descifrar las cookies del navegador. Cierra "
+                "el navegador o usa un archivo cookies.txt en Configuración.")
+    if "requested format is not available" in low:
+        return "El formato pedido no está disponible para este vídeo."
+    if "video unavailable" in low or "private video" in low:
+        return "El vídeo no está disponible o es privado."
+    if "is not a valid url" in low:
+        return "La URL del vídeo no es válida."
+    # Si no se reconoce, se devuelve la línea de error tal cual (recortada).
+    return text.strip()[:160]
 
 
 def ffmpeg_location() -> Optional[str]:
@@ -130,6 +161,7 @@ class DownloadTask(QRunnable):
         browser: Optional[str] = None,
         proxy: Optional[str] = None,
         rate_limit: Optional[str] = None,
+        cookies_file: Optional[str] = None,
     ) -> None:
         super().__init__()
         self.task_id = task_id
@@ -141,6 +173,7 @@ class DownloadTask(QRunnable):
         self.browser = browser
         self.proxy = proxy
         self.rate_limit = rate_limit
+        self.cookies_file = cookies_file
         self.signals = DownloadSignals()
         self._process: Optional[subprocess.Popen] = None
         self._cancelled = False
@@ -157,7 +190,7 @@ class DownloadTask(QRunnable):
 
     def _build_command(self) -> list[str]:
         """Compone la lista de argumentos completa para yt-dlp."""
-        cmd = ytdlp_base_command(self.browser, self.proxy)
+        cmd = ytdlp_base_command(self.browser, self.proxy, self.cookies_file)
         cmd += build_format_args(self.quality, self.container)
         cmd += [
             "--no-playlist",
@@ -205,12 +238,18 @@ class DownloadTask(QRunnable):
                 creationflags=NO_WINDOW,
             )
             assert self._process.stdout is not None
+            # Se conservan las últimas líneas para diagnosticar un fallo.
+            tail: list[str] = []
             for raw in self._process.stdout:
                 line = raw.rstrip("\n")
                 if line.startswith(_PROG_TAG):
                     self._emit_progress(line)
                 elif line.startswith(_FILE_TAG):
                     final_path = line.split(_SEP, 1)[-1].strip()
+                elif line.strip():
+                    tail.append(line.strip())
+                    if len(tail) > 25:
+                        tail.pop(0)
             return_code = self._process.wait()
         except FileNotFoundError:
             self.signals.failed.emit(
@@ -225,9 +264,14 @@ class DownloadTask(QRunnable):
             self.signals.failed.emit(self.task_id, "Descarga cancelada.")
             return
         if return_code != 0:
-            self.signals.failed.emit(
-                self.task_id, f"yt-dlp terminó con código {return_code}."
+            # Se busca la línea de ERROR real para mostrar la causa concreta.
+            error_line = next(
+                (ln for ln in reversed(tail) if "error" in ln.lower()),
+                tail[-1] if tail else "",
             )
+            message = (friendly_ytdlp_error(error_line) if error_line
+                       else f"yt-dlp terminó con código {return_code}.")
+            self.signals.failed.emit(self.task_id, message)
             return
 
         size = 0

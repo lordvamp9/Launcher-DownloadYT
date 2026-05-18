@@ -33,15 +33,21 @@ class AuthSignals(QObject):
 class AuthTask(QRunnable):
     """Comprueba en segundo plano si las cookies del navegador dan sesión."""
 
-    def __init__(self, browser: str, proxy: Optional[str] = None) -> None:
+    def __init__(
+        self,
+        browser: str,
+        proxy: Optional[str] = None,
+        cookies_file: Optional[str] = None,
+    ) -> None:
         super().__init__()
         self.browser = browser
         self.proxy = proxy
+        self.cookies_file = cookies_file
         self.signals = AuthSignals()
 
     def _build_command(self) -> list[str]:
         """Comando de sondeo: extrae 1 elemento del feed de historial."""
-        cmd = ytdlp_base_command(self.browser, self.proxy)
+        cmd = ytdlp_base_command(self.browser, self.proxy, self.cookies_file)
         cmd += [
             "--flat-playlist",
             "--dump-json",
@@ -138,9 +144,13 @@ class AuthManager(QObject):
         if browser in SUPPORTED_BROWSERS:
             self._browser = browser
 
-    def verify(self, proxy: Optional[str] = None) -> None:
+    def verify(
+        self,
+        proxy: Optional[str] = None,
+        cookies_file: Optional[str] = None,
+    ) -> None:
         """Lanza la verificación asíncrona de la sesión."""
-        task = AuthTask(self._browser, proxy)
+        task = AuthTask(self._browser, proxy, cookies_file)
         task.signals.verified.connect(self._on_verified)
         task.signals.error.connect(self._on_error)
         QThreadPool.globalInstance().start(task)
